@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: robo_qc
+      POSTGRES_USER: robo_qc
+      POSTGRES_PASSWORD: robo_qc_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U robo_qc"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  inference-server:
+    build:
+      context: ./services/inference-server
+      dockerfile: Dockerfile
+    environment:
+      MODEL_WEIGHTS_PATH: /models/wilddet3d/weights.pth
+      DEVICE: "cuda:0"
+      FP16: "true"
+      PORT: "8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    environment:
+      PORT: "3001"
+      DATABASE_URL: postgresql://robo_qc:robo_qc_dev@postgres:5432/robo_qc
+      INFERENCE_SERVER_URL: http://inference-server:8000
+      INFERENCE_TIMEOUT_MS: "30000"
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

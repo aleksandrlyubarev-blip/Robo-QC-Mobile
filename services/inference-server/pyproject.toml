@@ -1,0 +1,29 @@
+[project]
+name = "robo-qc-inference"
+version = "0.1.0"
+description = "WildDet3D inference server for PCB quality control"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "python-multipart>=0.0.18",
+    "pillow>=11.0.0",
+    "numpy>=2.0.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+]
+
+[project.optional-dependencies]
+gpu = [
+    "torch>=2.5.0",
+    "torchvision>=0.20.0",
+    "wilddet3d",
+]
+dev = [
+    "pytest>=8.0.0",
+    "httpx>=0.28.0",
+]
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"

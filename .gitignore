@@ -1,0 +1,26 @@
+node_modules/
+dist/
+.env
+.env.local
+*.tsbuildinfo
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# Model weights (too large for git)
+*.pth
+*.pt
+*.onnx
+*.bin
+
+# Uploads
+uploads/
+
+# IDE
+.idea/
+.vscode/
