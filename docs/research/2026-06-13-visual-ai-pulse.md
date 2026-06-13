@@ -144,10 +144,12 @@ hardware.** Nothing here is committed scope — it is a sequencing recommendatio
 ### Phase 2 — Data & contracts (specs, no GPUs required) — **do first**
 1. **Data-flywheel spec** (mat. 4) — capture trigger, image naming, golden-sample capture,
    defect taxonomy, operator review queue (build on `/:id/review` + `reviewDecision`),
-   retraining cadence. *Cheapest, unblocks everything.*
+   retraining cadence. *Cheapest, unblocks everything.* → **drafted:**
+   [`docs/specs/data-flywheel.md`](../specs/data-flywheel.md)
 2. **RoboQC defect taxonomy** (mat. 1, 4) — closed component classes (already in
    `ComponentType`) + open anomaly classes (scratch, residue, bent tab, missing-screw edge
-   cases, label defects, contamination).
+   cases, label defects, contamination). → **drafted:**
+   [`docs/specs/defect-taxonomy.md`](../specs/defect-taxonomy.md)
 3. **Synthetic-defect pipeline spec** (mat. 3) — golden images + few defect refs → variants
    + masks/labels/severity → train/eval split. Vendor-agnostic interface so NVIDIA
    tooling is swappable.
