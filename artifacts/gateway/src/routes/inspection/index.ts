@@ -7,10 +7,14 @@ import {
   qcResults,
   pcbSpecs,
 } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { callInferenceServer } from "../../lib/inference-client";
 import { runQcRulesEngine } from "../../lib/qc-rules-engine";
+import { mockDetectionResponse } from "../../lib/mock-inference";
 import type { ComponentSpec } from "@workspace/shared-types";
+
+/** Dev toggle: synthesize detections instead of calling WildDet3D. */
+const INFERENCE_MOCK = process.env["INFERENCE_MOCK"] === "true";
 
 const router: IRouter = Router();
 
@@ -98,13 +102,21 @@ router.post("/:id/analyze", async (req, res) => {
     .where(eq(inspections.id, id));
 
   try {
-    // Call inference server
-    const detectionResponse = await callInferenceServer({
-      imageUrl: inspection.capturedImageUrl,
-      depthMapUrl: inspection.capturedDepthMapUrl ?? undefined,
-      textPrompts,
-      scoreThreshold: 0.3,
-    });
+    // Re-running analysis replaces prior results — clear them first so
+    // detections and QC rows are not duplicated on repeated Analyze.
+    await db.delete(detections).where(eq(detections.inspectionId, id));
+    await db.delete(qcResults).where(eq(qcResults.inspectionId, id));
+
+    // Call inference server (or synthesize results when INFERENCE_MOCK=true,
+    // so the full AOI flow is demonstrable without a GPU/WildDet3D server).
+    const detectionResponse = INFERENCE_MOCK
+      ? mockDetectionResponse(components)
+      : await callInferenceServer({
+          imageUrl: inspection.capturedImageUrl,
+          depthMapUrl: inspection.capturedDepthMapUrl ?? undefined,
+          textPrompts,
+          scoreThreshold: 0.3,
+        });
 
     // Store raw detections
     await db
@@ -174,25 +186,47 @@ router.post("/:id/analyze", async (req, res) => {
   }
 });
 
-// Submit HITL review for a component
+// Submit HITL review for a single component
 router.post("/:id/review", async (req, res) => {
   const id = Number(req.params.id);
   const { componentId, decision, reviewedBy } = req.body;
 
+  if (!componentId || !decision) {
+    res.status(400).json({ error: "componentId and decision are required" });
+    return;
+  }
+
+  // Scope the update to the specific component, not the whole inspection.
   const [updated] = await db
     .update(qcResults)
     .set({
       reviewDecision: decision,
       reviewedBy,
-      status: decision === "override_pass" ? "pass" : decision === "approved" ? "pass" : "fail",
+      status: decision === "rejected" ? "fail" : "pass",
     })
-    .where(eq(qcResults.inspectionId, id))
+    .where(and(eq(qcResults.inspectionId, id), eq(qcResults.componentId, componentId)))
     .returning();
 
   if (!updated) {
     res.status(404).json({ error: "QC result not found" });
     return;
   }
+
+  // When nothing is left needing review, mark the inspection completed.
+  const remaining = await db
+    .select()
+    .from(qcResults)
+    .where(eq(qcResults.inspectionId, id));
+  const stillOpen = remaining.some(
+    (r) => (r.status === "fail" || r.status === "missing") && !r.reviewDecision,
+  );
+  if (!stillOpen) {
+    await db
+      .update(inspections)
+      .set({ status: "completed", updatedAt: new Date() })
+      .where(and(eq(inspections.id, id), eq(inspections.status, "reviewing")));
+  }
+
   res.json(updated);
 });
 
