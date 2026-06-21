@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Plus, Lock, Trash2 } from "lucide-react";
 import { useSpec, useCreateSpec, useUpdateSpec } from "../api/hooks";
 import { useMode } from "../app/mode";
 import { Loader, ErrorBanner } from "../components/states";
@@ -85,13 +86,15 @@ export function SpecEditorPage() {
 
   return (
     <div>
-      <button className="btn" onClick={() => navigate(-1)} style={{ marginBottom: 12 }}>← Back</button>
+      <button className="btn" onClick={() => navigate(-1)} style={{ marginBottom: 12 }}>
+        <ArrowLeft size={16} /> Back
+      </button>
       <h1 className="page-title">
         {readOnly ? "View Spec" : isEdit ? "Edit Spec" : "New PCB Spec"}
       </h1>
       {readOnly && (
         <div className="banner-info" style={{ marginBottom: 14 }}>
-          🔒 Display mode is read-only. Switch to Checker to edit specs.
+          <Lock size={15} /> Display mode is read-only. Switch to Checker to edit specs.
         </div>
       )}
 
@@ -124,7 +127,7 @@ export function SpecEditorPage() {
             className="btn"
             onClick={() => setComponents((prev) => [...prev, makeComponent(prev.length)])}
           >
-            + Add component
+            <Plus size={16} /> Add component
           </button>
         )}
       </div>
@@ -174,7 +177,7 @@ function ComponentForm({
     <div className="card">
       <div className="row-between" style={{ marginBottom: 10 }}>
         <strong>{comp.label || comp.componentId}</strong>
-        <button className="btn btn-danger" onClick={onRemove}>Remove</button>
+        <button className="btn btn-danger" onClick={onRemove}><Trash2 size={15} /> Remove</button>
       </div>
 
       <div className="grid-2">

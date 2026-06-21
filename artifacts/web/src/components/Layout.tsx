@@ -1,26 +1,42 @@
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import { NavLink, Outlet } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Camera,
+  ClipboardList,
+  FileText,
+  Search,
+  ScanLine,
+  MonitorDot,
+  ChevronDown,
+  Check,
+  Database,
+  RefreshCw,
+  type LucideProps,
+} from "lucide-react";
 import { useMode, type AppMode } from "../app/mode";
 import { useDataSource, type DataPreference } from "../app/dataSource";
+
+type IconType = ComponentType<LucideProps>;
 
 interface Tab {
   to: string;
   label: string;
-  icon: string;
+  icon: IconType;
   end?: boolean;
 }
 
 const TABS: Record<AppMode, Tab[]> = {
   checker: [
-    { to: "/", label: "Home", icon: "🏠", end: true },
-    { to: "/inspections/new", label: "Inspect", icon: "🎥" },
-    { to: "/specs", label: "Specs", icon: "📋" },
-    { to: "/reports", label: "Reports", icon: "📄" },
+    { to: "/", label: "Home", icon: LayoutDashboard, end: true },
+    { to: "/inspections/new", label: "Inspect", icon: Camera },
+    { to: "/specs", label: "Specs", icon: ClipboardList },
+    { to: "/reports", label: "Reports", icon: FileText },
   ],
   display: [
-    { to: "/", label: "Dashboard", icon: "🏠", end: true },
-    { to: "/inspections", label: "Inspections", icon: "🔍" },
-    { to: "/reports", label: "Reports", icon: "📄" },
+    { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+    { to: "/inspections", label: "Inspections", icon: Search },
+    { to: "/reports", label: "Reports", icon: FileText },
   ],
 };
 
@@ -31,14 +47,20 @@ function ModeToggle() {
       <button
         className={mode === "checker" ? "active" : ""}
         onClick={() => setMode("checker")}
+        aria-label="Checker mode"
+        title="Checker"
       >
-        Checker
+        <ScanLine size={15} />
+        <span className="mt-label">Checker</span>
       </button>
       <button
         className={mode === "display" ? "active" : ""}
         onClick={() => setMode("display")}
+        aria-label="Display mode"
+        title="Display"
       >
-        Display
+        <MonitorDot size={15} />
+        <span className="mt-label">Display</span>
       </button>
     </div>
   );
@@ -63,8 +85,8 @@ function DataSourcePill() {
         title="Data source"
       >
         <span className="dot" />
-        {probing ? "…" : isLive ? "LIVE" : "DEMO"}
-        <span className="caret">▾</span>
+        <span className="ds-pill-text">{probing ? "…" : isLive ? "LIVE" : "DEMO"}</span>
+        <ChevronDown size={12} className="caret" />
       </button>
       {open && (
         <>
@@ -82,7 +104,7 @@ function DataSourcePill() {
               >
                 <div className="ds-menu-label">
                   {opt.label}
-                  {preference === opt.value && <span> ✓</span>}
+                  {preference === opt.value && <Check size={14} />}
                 </div>
                 <div className="ds-menu-hint">{opt.hint}</div>
               </button>
@@ -101,7 +123,8 @@ function DemoBanner() {
   const autoFallback = preference === "auto" && backendReachable === false;
   return (
     <div className="demo-banner">
-      <span>
+      <span className="demo-banner-text">
+        <Database size={13} />
         <strong>DEMO MODE</strong>{" "}
         {autoFallback
           ? "— gateway unreachable, showing seeded AOI data."
@@ -109,7 +132,7 @@ function DemoBanner() {
       </span>
       {preference !== "demo" && (
         <button className="demo-banner-btn" onClick={recheck} disabled={probing}>
-          {probing ? "Checking…" : "Retry connection"}
+          <RefreshCw size={12} /> {probing ? "Checking…" : "Retry"}
         </button>
       )}
     </div>
@@ -128,12 +151,12 @@ export function Layout() {
             <circle cx="32" cy="32" r="16" stroke="#38bdf8" strokeWidth="3" fill="none" />
             <circle cx="32" cy="32" r="6" fill="#38bdf8" />
           </svg>
-          <div>
+          <div className="brand-text">
             Neuron Vision
             <small>{mode === "checker" ? "Checker" : "Display"}</small>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="header-controls">
           <DataSourcePill />
           <ModeToggle />
         </div>
@@ -142,17 +165,20 @@ export function Layout() {
       <DemoBanner />
 
       <nav className="tabbar">
-        {tabs.map((tab) => (
-          <NavLink
-            key={tab.to}
-            to={tab.to}
-            end={tab.end}
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <span className="tab-icon">{tab.icon}</span>
-            {tab.label}
-          </NavLink>
-        ))}
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <NavLink
+              key={tab.to}
+              to={tab.to}
+              end={tab.end}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <Icon className="tab-icon" size={20} />
+              {tab.label}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <main className="app-main">

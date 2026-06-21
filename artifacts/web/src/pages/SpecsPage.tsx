@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { Plus, ClipboardList } from "lucide-react";
 import { useSpecs, useDeleteSpec } from "../api/hooks";
 import { useMode } from "../app/mode";
 import { Loader, ErrorBanner, EmptyState } from "../components/states";
@@ -20,13 +21,13 @@ export function SpecsPage() {
       <div className="row-between" style={{ marginBottom: 16 }}>
         <h1 className="page-title" style={{ margin: 0 }}>PCB Specs</h1>
         {!readOnly && (
-          <Link to="/specs/new" className="btn btn-primary">+ New</Link>
+          <Link to="/specs/new" className="btn btn-primary"><Plus size={16} /> New</Link>
         )}
       </div>
 
       {list.length === 0 ? (
         <EmptyState
-          emoji="📋"
+          icon={<ClipboardList size={40} strokeWidth={1.5} />}
           title="No specs yet"
           hint={
             readOnly

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Database, Camera } from "lucide-react";
 import { useInspections, useReports, useSpecs } from "../api/hooks";
 import { useMode } from "../app/mode";
 import { useDataSource } from "../app/dataSource";
@@ -27,7 +28,7 @@ export function DashboardPage() {
       <div>
         <h1 className="page-title">{mode === "checker" ? "Inspection Console" : "QC Dashboard"}</h1>
         <EmptyState
-          emoji="🗄️"
+          icon={<Database size={40} strokeWidth={1.5} />}
           title="Live backend connected — no data yet"
           hint="The database is empty. Seed demo AOI data with `pnpm db:seed`, or switch the data source to Demo from the header."
           action={
@@ -55,7 +56,7 @@ export function DashboardPage() {
 
       {mode === "checker" && (
         <Link to="/inspections/new" className="btn btn-primary btn-block btn-lg" style={{ marginBottom: 18 }}>
-          🎥 Start New Inspection
+          <Camera size={18} /> Start New Inspection
         </Link>
       )}
 
