@@ -84,8 +84,9 @@ pnpm --filter @workspace/web run build          # production build
 pnpm --filter @workspace/web run verify:demo    # headless demo-flow checks
 ```
 
-> **CI:** No GitHub Actions / CI pipeline is configured for this repository
-> yet. The checks above are run locally; there is no automated CI gate on PRs.
+> **CI:** GitHub Actions runs `typecheck`, the web `build`, and `verify:demo`
+> on every push / PR (`.github/workflows/ci.yml`). There is no DB/GPU in CI, so
+> live-stack and real-inference paths are not exercised there.
 
 ## Configuration
 
