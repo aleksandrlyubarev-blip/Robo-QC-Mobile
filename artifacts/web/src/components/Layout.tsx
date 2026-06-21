@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useMode, type AppMode } from "../app/mode";
 import { useDataSource, type DataPreference } from "../app/dataSource";
+import { getApiBase, setApiBase } from "../api/client";
 
 type IconType = ComponentType<LucideProps>;
 
@@ -72,8 +73,43 @@ const PREF_OPTIONS: { value: DataPreference; label: string; hint: string }[] = [
   { value: "demo", label: "Demo", hint: "Seeded in-memory inspection data" },
 ];
 
+function GatewayUrlField({ onSaved }: { onSaved: () => void }) {
+  const [url, setUrl] = useState(() => getApiBase());
+
+  const save = () => {
+    setApiBase(url);
+    setUrl(getApiBase());
+    onSaved();
+  };
+
+  return (
+    <div className="ds-gw">
+      <label className="ds-gw-label" htmlFor="ds-gw-input">
+        Gateway URL
+      </label>
+      <input
+        id="ds-gw-input"
+        className="ds-gw-input"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="/api or http://10.0.2.2:3001/api"
+        spellCheck={false}
+        autoCapitalize="none"
+        autoCorrect="off"
+        inputMode="url"
+      />
+      <button className="ds-gw-save" onClick={save}>
+        Apply
+      </button>
+      <div className="ds-menu-hint">
+        Point a phone/emulator at the gateway. Include the <code>/api</code> path. See MOBILE.md.
+      </div>
+    </div>
+  );
+}
+
 function DataSourcePill() {
-  const { source, preference, setPreference, probing } = useDataSource();
+  const { source, preference, setPreference, probing, recheck } = useDataSource();
   const [open, setOpen] = useState(false);
   const isLive = source === "live";
 
@@ -109,6 +145,7 @@ function DataSourcePill() {
                 <div className="ds-menu-hint">{opt.hint}</div>
               </button>
             ))}
+            <GatewayUrlField onSaved={recheck} />
           </div>
         </>
       )}

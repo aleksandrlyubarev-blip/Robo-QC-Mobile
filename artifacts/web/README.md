@@ -96,7 +96,16 @@ pnpm --filter @workspace/web run verify:demo    # headless demo-flow checks
 | `VITE_API_URL`    | build    | `/api`                  | API base URL baked into the prod bundle.      |
 | `DATABASE_URL`    | gateway  | —                       | Postgres connection (live mode).              |
 | `PORT`            | gateway  | `3001`                  | Gateway HTTP port.                            |
+| `HOST`            | gateway  | `0.0.0.0`               | Bind interface (LAN-reachable by default).    |
+| `CORS_ORIGINS`    | gateway  | reflect any             | Comma-separated CORS allow-list (prod).       |
+| `JSON_BODY_LIMIT` | gateway  | `50mb`                  | Max body size for `data:` URL captures.       |
 | `INFERENCE_MOCK`  | gateway  | `false`                 | Synthesize detections instead of WildDet3D.   |
+
+The gateway base URL is also overridable **at runtime on the device**: header
+→ data-source pill → **Gateway URL**. This lets a phone or emulator point at the
+dev machine without a rebuild — see [`MOBILE.md`](../../MOBILE.md) for the
+per-device addresses (Android emulator `10.0.2.2`, iOS simulator `localhost`,
+physical phone LAN IP).
 
 ## Project layout
 

@@ -34,6 +34,9 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    // Listen on all interfaces so a phone/emulator on the LAN can load the dev
+    // app (and reach the gateway through the /api proxy below). See MOBILE.md.
+    host: true,
     proxy: {
       "/api": {
         target: GATEWAY_TARGET,

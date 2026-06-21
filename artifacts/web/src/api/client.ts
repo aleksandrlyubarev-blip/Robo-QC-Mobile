@@ -12,11 +12,41 @@ import type {
 import type { Api } from "./contract";
 
 /**
- * Base URL for the gateway API. In development Vite proxies `/api` to the
- * gateway (see vite.config.ts); in production it can be overridden with
+ * Build-time base URL for the gateway API. In development Vite proxies `/api`
+ * to the gateway (see vite.config.ts); in production it can be overridden with
  * VITE_API_URL to point at a deployed gateway.
  */
-const API_BASE = import.meta.env?.VITE_API_URL ?? "/api";
+const DEFAULT_API_BASE = import.meta.env?.VITE_API_URL ?? "/api";
+
+/** localStorage key for the device-level runtime gateway URL override. */
+export const API_BASE_KEY = "nv.apiBaseUrl";
+
+/**
+ * Resolve the gateway base URL at call time. A runtime override stored on the
+ * device wins, so a phone or emulator can point at the developer machine
+ * without a rebuild (e.g. http://10.0.2.2:3001/api on an Android emulator,
+ * http://<LAN-IP>:3001/api on a physical phone — see MOBILE.md). Falls back to
+ * the build-time VITE_API_URL, then the Vite-proxied "/api".
+ */
+export function getApiBase(): string {
+  try {
+    const override = localStorage.getItem(API_BASE_KEY);
+    if (override && override.trim()) return override.trim().replace(/\/+$/, "");
+  } catch {
+    // localStorage unavailable (private mode / non-browser) — use the default.
+  }
+  return DEFAULT_API_BASE;
+}
+
+/** Set (or clear, with null/empty) the device-level gateway URL override. */
+export function setApiBase(url: string | null): void {
+  try {
+    if (url && url.trim()) localStorage.setItem(API_BASE_KEY, url.trim().replace(/\/+$/, ""));
+    else localStorage.removeItem(API_BASE_KEY);
+  } catch {
+    // Best-effort: ignore storage failures.
+  }
+}
 
 export class ApiError extends Error {
   constructor(
@@ -30,7 +60,7 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const resp = await fetch(`${API_BASE}${path}`, {
+  const resp = await fetch(`${getApiBase()}${path}`, {
     headers: { "Content-Type": "application/json", ...init?.headers },
     ...init,
   });
@@ -62,7 +92,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
  */
 export async function probeBackend(timeoutMs = 2500): Promise<boolean> {
   try {
-    const resp = await fetch(`${API_BASE}/healthz`, {
+    const resp = await fetch(`${getApiBase()}/healthz`, {
       signal: AbortSignal.timeout(timeoutMs),
     });
     if (!resp.ok) return false;
