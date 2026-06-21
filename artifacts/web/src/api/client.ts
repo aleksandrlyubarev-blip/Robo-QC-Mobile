@@ -9,13 +9,14 @@ import type {
   CreateInspectionInput,
   ReviewInput,
 } from "./types";
+import type { Api } from "./contract";
 
 /**
  * Base URL for the gateway API. In development Vite proxies `/api` to the
  * gateway (see vite.config.ts); in production it can be overridden with
  * VITE_API_URL to point at a deployed gateway.
  */
-const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
+const API_BASE = import.meta.env?.VITE_API_URL ?? "/api";
 
 export class ApiError extends Error {
   constructor(
@@ -51,7 +52,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await resp.json()) as T;
 }
 
-export const api = {
+/**
+ * Probe the gateway with a short timeout. Returns true when the backend is
+ * reachable so the app can decide between live and demo data on startup.
+ */
+export async function probeBackend(timeoutMs = 2500): Promise<boolean> {
+  try {
+    const resp = await fetch(`${API_BASE}/healthz`, {
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    return resp.ok;
+  } catch {
+    return false;
+  }
+}
+
+export const liveApi: Api = {
   health: () => request<HealthStatus>("/healthz"),
 
   specs: {

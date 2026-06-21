@@ -4,7 +4,7 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from "@tanstack/react-query";
-import { api } from "./client";
+import { useApi } from "../app/dataSource";
 import type {
   CreateSpecInput,
   CreateInspectionInput,
@@ -26,20 +26,27 @@ export const queryKeys = {
   report: (id: number) => ["reports", id] as const,
 };
 
+// Statuses where the server is actively working and the detail view should
+// keep polling. Idle states (capturing / pre_screening) await operator action.
+const ACTIVE_STATUSES = new Set(["analyzing", "uploading"]);
+
 export function useHealth(): UseQueryResult<HealthStatus> {
+  const api = useApi();
   return useQuery({
     queryKey: queryKeys.health,
-    queryFn: api.health,
+    queryFn: () => api.health(),
     refetchInterval: 15_000,
     retry: false,
   });
 }
 
 export function useSpecs(): UseQueryResult<PcbSpec[]> {
-  return useQuery({ queryKey: queryKeys.specs, queryFn: api.specs.list });
+  const api = useApi();
+  return useQuery({ queryKey: queryKeys.specs, queryFn: () => api.specs.list() });
 }
 
 export function useSpec(id: number | undefined): UseQueryResult<PcbSpec> {
+  const api = useApi();
   return useQuery({
     queryKey: queryKeys.spec(id ?? -1),
     queryFn: () => api.specs.get(id as number),
@@ -48,6 +55,7 @@ export function useSpec(id: number | undefined): UseQueryResult<PcbSpec> {
 }
 
 export function useCreateSpec() {
+  const api = useApi();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateSpecInput) => api.specs.create(input),
@@ -56,6 +64,7 @@ export function useCreateSpec() {
 }
 
 export function useUpdateSpec(id: number) {
+  const api = useApi();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: Partial<CreateSpecInput>) => api.specs.update(id, input),
@@ -67,6 +76,7 @@ export function useUpdateSpec(id: number) {
 }
 
 export function useDeleteSpec() {
+  const api = useApi();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.specs.remove(id),
@@ -75,25 +85,24 @@ export function useDeleteSpec() {
 }
 
 export function useInspections(): UseQueryResult<Inspection[]> {
-  return useQuery({ queryKey: queryKeys.inspections, queryFn: api.inspections.list });
+  const api = useApi();
+  return useQuery({ queryKey: queryKeys.inspections, queryFn: () => api.inspections.list() });
 }
 
-const ACTIVE_STATUSES = new Set(["analyzing", "uploading", "pre_screening"]);
-
-export function useInspection(
-  id: number | undefined,
-): UseQueryResult<InspectionDetail> {
+export function useInspection(id: number | undefined): UseQueryResult<InspectionDetail> {
+  const api = useApi();
   return useQuery({
     queryKey: queryKeys.inspection(id ?? -1),
     queryFn: () => api.inspections.get(id as number),
     enabled: id != null,
     // Poll only while server-side analysis is in flight, then stop.
     refetchInterval: (query) =>
-      query.state.data && ACTIVE_STATUSES.has(query.state.data.status) ? 2500 : false,
+      query.state.data && ACTIVE_STATUSES.has(query.state.data.status) ? 2000 : false,
   });
 }
 
 export function useCreateInspection() {
+  const api = useApi();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateInspectionInput) => api.inspections.create(input),
@@ -102,6 +111,7 @@ export function useCreateInspection() {
 }
 
 export function useAnalyzeInspection(id: number) {
+  const api = useApi();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => api.inspections.analyze(id),
@@ -113,6 +123,7 @@ export function useAnalyzeInspection(id: number) {
 }
 
 export function useReviewComponent(id: number) {
+  const api = useApi();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: ReviewInput) => api.inspections.review(id, input),
@@ -121,10 +132,12 @@ export function useReviewComponent(id: number) {
 }
 
 export function useReports(): UseQueryResult<Report[]> {
-  return useQuery({ queryKey: queryKeys.reports, queryFn: api.reports.list });
+  const api = useApi();
+  return useQuery({ queryKey: queryKeys.reports, queryFn: () => api.reports.list() });
 }
 
 export function useGenerateReport() {
+  const api = useApi();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ inspectionId, notes }: { inspectionId: number; notes?: string }) =>

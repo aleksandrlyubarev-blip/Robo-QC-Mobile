@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useMode, type AppMode } from "../app/mode";
-import { useHealth } from "../api/hooks";
+import { useDataSource, type DataPreference } from "../app/dataSource";
 
 interface Tab {
   to: string;
@@ -43,12 +44,81 @@ function ModeToggle() {
   );
 }
 
+const PREF_OPTIONS: { value: DataPreference; label: string; hint: string }[] = [
+  { value: "auto", label: "Auto", hint: "Live gateway if reachable, else demo" },
+  { value: "live", label: "Live", hint: "Always use the gateway API" },
+  { value: "demo", label: "Demo", hint: "Seeded in-memory inspection data" },
+];
+
+function DataSourcePill() {
+  const { source, preference, setPreference, probing } = useDataSource();
+  const [open, setOpen] = useState(false);
+  const isLive = source === "live";
+
+  return (
+    <div className="ds-pill-wrap">
+      <button
+        className={`ds-pill ${source}`}
+        onClick={() => setOpen((v) => !v)}
+        title="Data source"
+      >
+        <span className="dot" />
+        {probing ? "…" : isLive ? "LIVE" : "DEMO"}
+        <span className="caret">▾</span>
+      </button>
+      {open && (
+        <>
+          <div className="ds-backdrop" onClick={() => setOpen(false)} />
+          <div className="ds-menu" role="menu">
+            <div className="ds-menu-head">Data source</div>
+            {PREF_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className={`ds-menu-item ${preference === opt.value ? "active" : ""}`}
+                onClick={() => {
+                  setPreference(opt.value);
+                  setOpen(false);
+                }}
+              >
+                <div className="ds-menu-label">
+                  {opt.label}
+                  {preference === opt.value && <span> ✓</span>}
+                </div>
+                <div className="ds-menu-hint">{opt.hint}</div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function DemoBanner() {
+  const { source, preference, backendReachable, recheck, probing } = useDataSource();
+  if (source !== "demo") return null;
+
+  const autoFallback = preference === "auto" && backendReachable === false;
+  return (
+    <div className="demo-banner">
+      <span>
+        <strong>DEMO MODE</strong>{" "}
+        {autoFallback
+          ? "— gateway unreachable, showing seeded AOI data."
+          : "— seeded AOI data (no live backend)."}
+      </span>
+      {preference !== "demo" && (
+        <button className="demo-banner-btn" onClick={recheck} disabled={probing}>
+          {probing ? "Checking…" : "Retry connection"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function Layout() {
   const { mode } = useMode();
-  const health = useHealth();
   const tabs = TABS[mode];
-
-  const inferenceOk = health.data?.inferenceServer === "connected";
 
   return (
     <div className="app-shell">
@@ -64,16 +134,12 @@ export function Layout() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span
-            className="chip"
-            title={inferenceOk ? "Inference server connected" : "Inference server unavailable"}
-            style={{ color: inferenceOk ? "var(--pass)" : "var(--text-faint)" }}
-          >
-            ● Engine
-          </span>
+          <DataSourcePill />
           <ModeToggle />
         </div>
       </header>
+
+      <DemoBanner />
 
       <nav className="tabbar">
         {tabs.map((tab) => (

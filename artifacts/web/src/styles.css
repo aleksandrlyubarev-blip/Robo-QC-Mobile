@@ -94,6 +94,9 @@ button {
   gap: 10px;
   font-weight: 700;
   letter-spacing: 0.2px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .brand-mark {
@@ -133,6 +136,35 @@ button {
 .mode-toggle button.active {
   background: var(--accent-strong);
   color: #04121f;
+}
+
+.app-header > div:last-child {
+  flex: none;
+}
+
+/* Tighten the header so brand + data source + mode toggle fit narrow phones. */
+@media (max-width: 430px) {
+  .app-header {
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 8px;
+  }
+  .brand-mark {
+    width: 24px;
+    height: 24px;
+  }
+  .brand {
+    font-size: 14px;
+  }
+  .brand small {
+    display: none;
+  }
+  .mode-toggle button {
+    padding: 6px 9px;
+  }
+  .ds-pill {
+    padding: 5px 7px;
+  }
 }
 
 .app-main {
@@ -633,4 +665,141 @@ button {
   letter-spacing: 0.6px;
   color: var(--text-faint);
   margin: 18px 0 10px;
+}
+
+/* ---------- Data source pill + menu ---------- */
+.ds-pill-wrap {
+  position: relative;
+}
+
+.ds-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.ds-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ds-pill .caret {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.ds-pill.live {
+  color: var(--pass);
+  border-color: color-mix(in srgb, var(--pass) 40%, transparent);
+}
+
+.ds-pill.demo {
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 40%, transparent);
+}
+
+.ds-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.ds-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 31;
+  width: 230px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.ds-menu-head {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-faint);
+  padding: 10px 12px 6px;
+}
+
+.ds-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border);
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.ds-menu-item:hover {
+  background: var(--bg-card);
+}
+
+.ds-menu-item.active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.ds-menu-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ds-menu-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+/* ---------- Demo banner ---------- */
+.demo-banner {
+  position: sticky;
+  top: calc(var(--header-h) + var(--safe-top));
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #1a1206;
+  background: color-mix(in srgb, var(--warning) 88%, #fff);
+  border-bottom: 1px solid color-mix(in srgb, var(--warning) 60%, #000);
+}
+
+.demo-banner strong {
+  letter-spacing: 0.5px;
+}
+
+.demo-banner-btn {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.12);
+  color: #1a1206;
+  cursor: pointer;
+}
+
+.demo-banner-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }

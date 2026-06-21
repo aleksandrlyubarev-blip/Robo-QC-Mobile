@@ -13,7 +13,7 @@ import { Loader, ErrorBanner } from "../components/states";
 import { formatDate, formatDeviation } from "../lib/format";
 import type { QcResultRecord, ReviewDecision } from "../api/types";
 
-const ANALYZING = new Set(["analyzing", "uploading", "pre_screening"]);
+const ANALYZING = new Set(["analyzing", "uploading"]);
 
 export function InspectionDetailPage() {
   const params = useParams();
