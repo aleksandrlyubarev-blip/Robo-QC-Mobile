@@ -44,6 +44,13 @@ pnpm dev:full   # also start the real WildDet3D inference server (needs GPU)
 
 Ports: gateway and Vite proxy both use **3001**; the web app is on **5173**.
 
+### On a phone, emulator, or simulator
+
+The app is a mobile PWA and can run against the gateway from a device. See
+[`MOBILE.md`](./MOBILE.md) for the per-device gateway address (Android emulator
+`10.0.2.2:3001`, iOS simulator `localhost:3001`, physical phone
+`<LAN-IP>:3001`) and the in-app **Gateway URL** override.
+
 ---
 
 ## 2. Demo script (≈3 minutes)

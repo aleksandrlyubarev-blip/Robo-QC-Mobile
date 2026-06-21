@@ -855,6 +855,51 @@ button {
   margin-top: 2px;
 }
 
+/* Gateway URL override (mobile: point at the dev machine) */
+.ds-gw {
+  border-top: 1px solid var(--border);
+  padding: 10px 12px;
+}
+
+.ds-gw-label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-faint);
+  margin-bottom: 6px;
+}
+
+.ds-gw-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.ds-gw-save {
+  margin-top: 6px;
+  width: 100%;
+  background: var(--accent);
+  color: #04121f;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.ds-gw code {
+  background: var(--bg-card);
+  padding: 0 3px;
+  border-radius: 3px;
+}
+
 /* ---------- Demo banner ---------- */
 .demo-banner {
   position: sticky;

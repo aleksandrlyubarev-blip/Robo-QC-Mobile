@@ -5,9 +5,23 @@ import router from "./routes";
 
 const app: Express = express();
 
-app.use(cors());
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true }));
+// CORS: in development we reflect any origin so phones, emulators and other
+// LAN browsers can reach the gateway during the mobile MVP. Native shells
+// (Capacitor/Cordova) send `capacitor://localhost`, `ionic://localhost` or no
+// Origin header at all — reflecting the request origin covers all of these.
+// Set CORS_ORIGINS (comma-separated) to lock this down to specific origins.
+const corsOrigins = (process.env["CORS_ORIGINS"] ?? "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+app.use(cors({ origin: corsOrigins.length > 0 ? corsOrigins : true }));
+
+// Phone-camera frames arrive as base64 `data:` image URLs inside the JSON
+// body, so the limit must stay generous. Configurable via JSON_BODY_LIMIT for
+// higher-resolution captures without a code change.
+const bodyLimit = process.env["JSON_BODY_LIMIT"] || "50mb";
+app.use(express.json({ limit: bodyLimit }));
+app.use(express.urlencoded({ extended: true, limit: bodyLimit }));
 
 app.use("/api", router);
 
