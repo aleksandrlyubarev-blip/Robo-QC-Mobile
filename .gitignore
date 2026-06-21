@@ -21,6 +21,11 @@ __pycache__/
 # Uploads
 uploads/
 
+# Capacitor native projects (generated on demand from capacitor.config.ts via
+# `pnpm --filter @workspace/web run cap:add:android` / `cap:add:ios`)
+artifacts/web/android/
+artifacts/web/ios/
+
 # IDE
 .idea/
 .vscode/

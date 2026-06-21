@@ -108,3 +108,62 @@ unchanged.
   Raise it in `.env` and restart the gateway.
 - **`localhost` works in the iOS simulator but not the Android emulator.** Use
   `10.0.2.2` for Android — `localhost` there is the emulated device itself.
+
+---
+
+## 5. Native shell (Capacitor)
+
+The native iOS/Android apps are a thin [Capacitor](https://capacitorjs.com)
+shell around the **existing** `artifacts/web` build — no screens are rewritten
+and the React code imports no Capacitor APIs. The shell loads the production
+Vite bundle from `webDir: "dist"`.
+
+- **App name:** Neuron Vision
+- **App / package id:** `com.neuronvision.app`
+- **Config:** `artifacts/web/capacitor.config.ts`
+
+On device with no reachable gateway the app falls back to **Demo** mode; for
+live data set the gateway URL from the in-app data-source menu (§1).
+
+### Requirements
+
+| Target  | Needs                                                                 |
+| ------- | --------------------------------------------------------------------- |
+| Android | JDK 17+, Android Studio (or the Android SDK + `ANDROID_HOME` set)      |
+| iOS     | macOS, Xcode, and CocoaPods (`sudo gem install cocoapods`)            |
+
+The Capacitor CLI is installed with the web workspace; no global install needed.
+
+### Commands
+
+All run from `artifacts/web` (or via `pnpm --filter @workspace/web run <script>`):
+
+```bash
+# 1. Add a native platform once (generates android/ or ios/, gitignored)
+pnpm cap:add:android
+pnpm cap:add:ios          # macOS only
+
+# 2. Build the web bundle and copy it into the native project(s)
+pnpm mobile:build         # = vite build && cap sync
+#   or, if dist is already built:
+pnpm cap:sync
+
+# 3. Open the native IDE to run on a device/emulator
+pnpm cap:open:android     # Android Studio
+pnpm cap:open:ios         # Xcode (macOS only)
+```
+
+The generated `android/` and `ios/` folders are git-ignored — they are
+reproducible from `capacitor.config.ts` with the commands above.
+
+### Verified here / blockers
+
+- ✅ `cap add android` scaffolds `android/` and `cap sync` copies the built
+  bundle into `android/app/src/main/assets/public` with app id
+  `com.neuronvision.app` — verified in this environment (JDK + Gradle present).
+- ⚠️ **Building/running** the Android app needs the **Android SDK**
+  (`ANDROID_HOME`), which is not installed here — open `android/` in Android
+  Studio (which provisions the SDK) or set `ANDROID_HOME` and run
+  `./android/gradlew assembleDebug`.
+- ⚠️ **iOS** requires **macOS + Xcode**; `cap add ios` cannot run on this Linux
+  host. Run the iOS commands on a Mac.
