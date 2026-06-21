@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Camera, ImageUp, Aperture, RotateCcw, ClipboardList, ImageOff, ArrowRight } from "lucide-react";
 import { useSpecs, useCreateInspection } from "../api/hooks";
 import { useMode } from "../app/mode";
 import { useCamera, fileToDataUrl } from "../lib/camera";
@@ -25,7 +26,7 @@ export function NewInspectionPage() {
   if (specList.length === 0) {
     return (
       <EmptyState
-        emoji="📋"
+        icon={<ClipboardList size={40} strokeWidth={1.5} />}
         title="No specs available"
         hint="Create a PCB spec first, then start an inspection against it."
         action={<Link to="/specs/new" className="btn btn-primary">Create spec</Link>}
@@ -100,7 +101,7 @@ export function NewInspectionPage() {
               gap: 8,
             }}
           >
-            <div style={{ fontSize: 40 }}>📷</div>
+            <ImageOff size={40} strokeWidth={1.5} />
             <div className="faint">No image yet</div>
           </div>
         )}
@@ -111,19 +112,19 @@ export function NewInspectionPage() {
       <div className="capture-controls">
         {image ? (
           <button className="btn btn-block" onClick={() => { setImage(null); }}>
-            ↺ Retake
+            <RotateCcw size={16} /> Retake
           </button>
         ) : cameraOn ? (
           <button className="btn btn-primary shutter btn-lg" onClick={handleCapture} disabled={!camera.ready}>
-            ◉ Capture
+            <Aperture size={18} /> Capture
           </button>
         ) : (
           <>
             <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => setCameraOn(true)}>
-              🎥 Open camera
+              <Camera size={16} /> Open camera
             </button>
             <button className="btn" style={{ flex: 1 }} onClick={() => fileInputRef.current?.click()}>
-              🖼 Upload
+              <ImageUp size={16} /> Upload
             </button>
           </>
         )}
@@ -146,7 +147,11 @@ export function NewInspectionPage() {
         disabled={create.isPending}
         onClick={handleSubmit}
       >
-        {create.isPending ? "Creating…" : image ? "Create & continue →" : "Create without image →"}
+        {create.isPending ? (
+          "Creating…"
+        ) : (
+          <>{image ? "Create & continue" : "Create without image"} <ArrowRight size={17} /></>
+        )}
       </button>
       <p className="faint" style={{ textAlign: "center", marginTop: 10 }}>
         You'll run the WildDet3D analysis on the next screen.

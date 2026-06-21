@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Play, RotateCw, FileText, Check, X, ShieldCheck } from "lucide-react";
 import {
   useInspection,
   useSpec,
@@ -44,7 +45,9 @@ export function InspectionDetailPage() {
 
   return (
     <div>
-      <button className="btn" onClick={() => navigate(-1)} style={{ marginBottom: 12 }}>← Back</button>
+      <button className="btn" onClick={() => navigate(-1)} style={{ marginBottom: 12 }}>
+        <ArrowLeft size={16} /> Back
+      </button>
 
       <div className="row-between" style={{ marginBottom: 4 }}>
         <h1 className="page-title" style={{ margin: 0 }}>Inspection #{insp.id}</h1>
@@ -70,7 +73,13 @@ export function InspectionDetailPage() {
             disabled={!insp.capturedImageUrl || isAnalyzing}
             onClick={() => analyze.mutate()}
           >
-            {isAnalyzing ? "Analyzing…" : hasResults ? "↻ Re-run analysis" : "▶ Run WildDet3D analysis"}
+            {isAnalyzing ? (
+              "Analyzing…"
+            ) : hasResults ? (
+              <><RotateCw size={17} /> Re-run analysis</>
+            ) : (
+              <><Play size={17} /> Run WildDet3D analysis</>
+            )}
           </button>
           {!insp.capturedImageUrl && (
             <p className="faint" style={{ textAlign: "center", marginTop: 8 }}>
@@ -111,23 +120,27 @@ export function InspectionDetailPage() {
 
           {review.error && <div style={{ marginTop: 12 }}><ErrorBanner error={review.error} /></div>}
 
-          {/* Report generation */}
-          <div className="section-label">Report</div>
-          <div className="card">
-            <button
-              className="btn btn-primary btn-block"
-              disabled={generateReport.isPending}
-              onClick={() =>
-                generateReport.mutate(
-                  { inspectionId: id },
-                  { onSuccess: () => navigate("/reports") },
-                )
-              }
-            >
-              {generateReport.isPending ? "Generating…" : "📄 Generate QC report"}
-            </button>
-            {generateReport.error && <div style={{ marginTop: 10 }}><ErrorBanner error={generateReport.error} /></div>}
-          </div>
+          {/* Report generation (Checker only) */}
+          {mode === "checker" && (
+            <>
+              <div className="section-label">Report</div>
+              <div className="card">
+                <button
+                  className="btn btn-primary btn-block"
+                  disabled={generateReport.isPending}
+                  onClick={() =>
+                    generateReport.mutate(
+                      { inspectionId: id },
+                      { onSuccess: () => navigate("/reports") },
+                    )
+                  }
+                >
+                  {generateReport.isPending ? "Generating…" : <><FileText size={16} /> Generate QC report</>}
+                </button>
+                {generateReport.error && <div style={{ marginTop: 10 }}><ErrorBanner error={generateReport.error} /></div>}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
@@ -174,13 +187,13 @@ function ResultRow({
       {canReview && !result.reviewDecision && (
         <div className="btn-row">
           <button className="btn btn-success" disabled={reviewPending} onClick={() => onReview("approved")}>
-            ✓ Approve
+            <Check size={15} /> Approve
           </button>
           <button className="btn btn-danger" disabled={reviewPending} onClick={() => onReview("rejected")}>
-            ✕ Reject
+            <X size={15} /> Reject
           </button>
           <button className="btn" disabled={reviewPending} onClick={() => onReview("override_pass")}>
-            ⤴ Override pass
+            <ShieldCheck size={15} /> Override pass
           </button>
         </div>
       )}

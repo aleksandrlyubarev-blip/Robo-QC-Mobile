@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Search } from "lucide-react";
 import { useInspections } from "../api/hooks";
 import { useMode } from "../app/mode";
 import { StatusBadge } from "../components/StatusBadge";
@@ -27,7 +28,7 @@ export function InspectionsPage() {
 
       {list.length === 0 ? (
         <EmptyState
-          emoji="🔍"
+          icon={<Search size={40} strokeWidth={1.5} />}
           title="No inspections yet"
           hint={mode === "checker" ? "Start a new inspection to capture and analyze a board." : "Inspections will appear here once operators run them."}
           action={mode === "checker" ? <Link to="/inspections/new" className="btn btn-primary">Start inspection</Link> : undefined}

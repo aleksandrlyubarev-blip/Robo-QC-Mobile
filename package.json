@@ -7,10 +7,15 @@
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --if-present run typecheck",
-    "dev": "concurrently --names \"WEB,GW,INF\" --prefix-colors \"green,cyan,magenta\" \"pnpm --filter @workspace/web run dev\" \"pnpm --filter @workspace/gateway run dev\" \"pnpm --filter @workspace/inference-server run dev\"",
+    "dev": "concurrently --names \"WEB,GW\" --prefix-colors \"green,cyan\" \"pnpm --filter @workspace/web run dev\" \"pnpm --filter @workspace/gateway run dev\"",
+    "dev:full": "concurrently --names \"WEB,GW,INF\" --prefix-colors \"green,cyan,magenta\" \"pnpm --filter @workspace/web run dev\" \"pnpm --filter @workspace/gateway run dev\" \"pnpm --filter @workspace/inference-server run dev\"",
     "dev:web": "pnpm --filter @workspace/web run dev",
     "dev:gateway": "pnpm --filter @workspace/gateway run dev",
-    "db:push": "pnpm --filter @workspace/db run push"
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose stop postgres",
+    "db:push": "pnpm --filter @workspace/db run push",
+    "db:seed": "pnpm --filter @workspace/gateway run seed",
+    "db:setup": "pnpm run db:up && pnpm run db:push && pnpm run db:seed"
   },
   "private": true,
   "devDependencies": {

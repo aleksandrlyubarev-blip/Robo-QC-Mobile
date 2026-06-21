@@ -36,45 +36,63 @@ The active source is shown in the header (`LIVE` / `DEMO`) and is selectable:
 
 ## Development
 
-The app talks to the gateway REST API under `/api`. In dev, Vite proxies
-`/api` to the gateway on **port 3001** (override with `GATEWAY_URL`). The
-gateway listens on 3001 by default, matching this proxy and `docker-compose`.
+Everything is on **port 3001**: the gateway listens there, Vite proxies `/api`
+there, and `docker-compose` maps it there. There is no 3000 anywhere.
+
+There are two coherent ways to run it.
+
+### A. Frontend only — instant Demo (no backend, no DB, no GPU)
 
 ```bash
-# Frontend only — opens in DEMO mode automatically (no backend needed)
-pnpm dev:web                    # → http://localhost:5173
-
-# Full stack — web + gateway + inference server
-pnpm dev
+pnpm dev:web        # → http://localhost:5173, opens in DEMO mode automatically
 ```
 
-To run the gateway for **live** mode it needs a Postgres connection:
+The app probes the gateway; when it's absent it falls back to seeded demo data
+and shows a `DEMO` banner. Nothing is silently zeroed.
+
+### B. Full live stack — web + gateway + Postgres
 
 ```bash
-docker compose up -d postgres   # or point at your own Postgres
-export DATABASE_URL=postgresql://robo_qc:robo_qc_dev@localhost:5432/robo_qc
-pnpm --filter @workspace/db run push   # create tables
-pnpm dev:gateway                        # listens on :3001
+cp .env.example .env          # DATABASE_URL, PORT=3001, INFERENCE_MOCK=true
+pnpm db:up                    # docker compose up -d postgres
+pnpm db:push                  # create tables (drizzle)
+pnpm db:seed                  # insert realistic AOI demo data
+pnpm dev                      # web + gateway (reads .env via dotenv)
 ```
 
-With the gateway up, the app's **Auto** source switches to `LIVE`
-automatically. Without it, the app stays in `DEMO`.
+`pnpm db:setup` runs `db:up && db:push && db:seed` in one shot. With the gateway
+up, the app's **Auto** data source switches to `LIVE` automatically.
+
+- The gateway **boots without a database** and `/api/healthz` still works; data
+  endpoints return a clear `503` until `DATABASE_URL` is set (never a crash).
+- `INFERENCE_MOCK=true` makes the gateway synthesize detections, so the live
+  **Analyze → QC → review → report** flow runs end-to-end without a GPU. Set it
+  to `false` (and run `pnpm dev:full`) to use the real WildDet3D server.
+
+### Display mode is read-only
+
+Switching the header to **Display** disables every mutation: no capture, spec
+editing, analysis, review, or report generation. Mutating routes
+(`/specs/new`, `/inspections/new`) redirect, and the spec editor renders
+read-only.
 
 ## Verification
 
 ```bash
-pnpm --filter @workspace/web run typecheck     # web types
-pnpm --filter @workspace/gateway run typecheck  # gateway types
+pnpm typecheck                                  # web + gateway + libs
 pnpm --filter @workspace/web run build          # production build
 pnpm --filter @workspace/web run verify:demo    # headless demo-flow checks
 ```
 
 ## Configuration
 
-| Variable       | Where    | Default                 | Purpose                                  |
-| -------------- | -------- | ----------------------- | ---------------------------------------- |
-| `GATEWAY_URL`  | dev/Vite | `http://localhost:3001` | Proxy target for `/api` during dev.      |
-| `VITE_API_URL` | build    | `/api`                  | API base URL baked into the prod bundle. |
+| Variable          | Where    | Default                 | Purpose                                       |
+| ----------------- | -------- | ----------------------- | --------------------------------------------- |
+| `GATEWAY_URL`     | dev/Vite | `http://localhost:3001` | Proxy target for `/api` during dev.           |
+| `VITE_API_URL`    | build    | `/api`                  | API base URL baked into the prod bundle.      |
+| `DATABASE_URL`    | gateway  | —                       | Postgres connection (live mode).              |
+| `PORT`            | gateway  | `3001`                  | Gateway HTTP port.                            |
+| `INFERENCE_MOCK`  | gateway  | `false`                 | Synthesize detections instead of WildDet3D.   |
 
 ## Project layout
 

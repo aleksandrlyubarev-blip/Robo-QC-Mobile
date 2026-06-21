@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import type { ServerResponse } from "node:http";
 
 // The gateway exposes its REST API under /api. During development we proxy
 // to it so the SPA can use same-origin relative URLs in every environment.
@@ -37,6 +38,18 @@ export default defineConfig({
       "/api": {
         target: GATEWAY_TARGET,
         changeOrigin: true,
+        // When the gateway is down, answer with a clean 503 instead of letting
+        // the proxy reset the socket — that keeps the frontend's liveness probe
+        // a resolved fetch (no browser console errors during demo fallback).
+        configure: (proxy) => {
+          proxy.on("error", (_err, _req, res) => {
+            const r = res as ServerResponse;
+            if (typeof r.writeHead === "function" && !r.headersSent) {
+              r.writeHead(503, { "Content-Type": "application/json" });
+              r.end(JSON.stringify({ error: "Gateway unavailable (demo mode)" }));
+            }
+          });
+        },
       },
     },
   },

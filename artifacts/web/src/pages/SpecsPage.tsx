@@ -1,10 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
+import { Plus, ClipboardList } from "lucide-react";
 import { useSpecs, useDeleteSpec } from "../api/hooks";
+import { useMode } from "../app/mode";
 import { Loader, ErrorBanner, EmptyState } from "../components/states";
 import { formatRelative } from "../lib/format";
 
 export function SpecsPage() {
   const navigate = useNavigate();
+  const { readOnly } = useMode();
   const specs = useSpecs();
   const del = useDeleteSpec();
 
@@ -17,15 +20,25 @@ export function SpecsPage() {
     <div>
       <div className="row-between" style={{ marginBottom: 16 }}>
         <h1 className="page-title" style={{ margin: 0 }}>PCB Specs</h1>
-        <Link to="/specs/new" className="btn btn-primary">+ New</Link>
+        {!readOnly && (
+          <Link to="/specs/new" className="btn btn-primary"><Plus size={16} /> New</Link>
+        )}
       </div>
 
       {list.length === 0 ? (
         <EmptyState
-          emoji="📋"
+          icon={<ClipboardList size={40} strokeWidth={1.5} />}
           title="No specs yet"
-          hint="Create a PCB spec to define the components and tolerances to inspect."
-          action={<Link to="/specs/new" className="btn btn-primary">Create spec</Link>}
+          hint={
+            readOnly
+              ? "No PCB specs have been defined."
+              : "Create a PCB spec to define the components and tolerances to inspect."
+          }
+          action={
+            readOnly ? undefined : (
+              <Link to="/specs/new" className="btn btn-primary">Create spec</Link>
+            )
+          }
         />
       ) : (
         <div className="list">
@@ -39,18 +52,22 @@ export function SpecsPage() {
                   </div>
                 </Link>
                 <div className="btn-row">
-                  <button className="btn" onClick={() => navigate(`/specs/${spec.id}`)}>Edit</button>
-                  <button
-                    className="btn btn-danger"
-                    disabled={del.isPending}
-                    onClick={() => {
-                      if (confirm(`Delete spec "${spec.name}"? This also removes its inspections.`)) {
-                        del.mutate(spec.id);
-                      }
-                    }}
-                  >
-                    Delete
+                  <button className="btn" onClick={() => navigate(`/specs/${spec.id}`)}>
+                    {readOnly ? "View" : "Edit"}
                   </button>
+                  {!readOnly && (
+                    <button
+                      className="btn btn-danger"
+                      disabled={del.isPending}
+                      onClick={() => {
+                        if (confirm(`Delete spec "${spec.name}"? This also removes its inspections.`)) {
+                          del.mutate(spec.id);
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

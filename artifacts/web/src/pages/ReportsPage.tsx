@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FileText, StickyNote, ArrowRight } from "lucide-react";
 import { useReports } from "../api/hooks";
 import { StatusBadge } from "../components/StatusBadge";
 import { Loader, ErrorBanner, EmptyState } from "../components/states";
@@ -20,7 +21,7 @@ export function ReportsPage() {
 
       {list.length === 0 ? (
         <EmptyState
-          emoji="📄"
+          icon={<FileText size={40} strokeWidth={1.5} />}
           title="No reports yet"
           hint="Generate a report from a completed inspection to see it here."
         />
@@ -50,14 +51,18 @@ export function ReportsPage() {
                 <div className="divider" />
                 <div className="row-between">
                   <span className="faint">{passPct}% components passing</span>
-                  <Link to={`/inspections/${r.inspectionId}`} className="chip">
-                    View inspection →
+                  <Link to={`/inspections/${r.inspectionId}`} className="chip chip-link">
+                    View inspection <ArrowRight size={12} />
                   </Link>
                 </div>
 
                 {r.operatorNotes && (
-                  <p className="muted" style={{ marginTop: 10, marginBottom: 0, fontSize: 13 }}>
-                    📝 {r.operatorNotes}
+                  <p
+                    className="muted"
+                    style={{ marginTop: 10, marginBottom: 0, fontSize: 13, display: "flex", gap: 6 }}
+                  >
+                    <StickyNote size={14} style={{ flex: "none", marginTop: 1 }} />
+                    <span>{r.operatorNotes}</span>
                   </p>
                 )}
               </div>

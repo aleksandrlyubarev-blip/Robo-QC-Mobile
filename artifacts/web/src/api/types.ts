@@ -121,6 +121,7 @@ export interface AnalyzeResult {
 
 export interface HealthStatus {
   status: string;
+  database?: "connected" | "unavailable" | "not_configured";
   inferenceServer: "connected" | "unavailable";
 }
 
