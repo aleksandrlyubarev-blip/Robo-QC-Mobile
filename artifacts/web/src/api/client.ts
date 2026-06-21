@@ -55,13 +55,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 /**
  * Probe the gateway with a short timeout. Returns true when the backend is
  * reachable so the app can decide between live and demo data on startup.
+ *
+ * A real gateway's /healthz reports `status: "ok"`. When the gateway is down,
+ * the Vite dev proxy answers 200 with `status: "unavailable"` so the probe
+ * resolves cleanly without a failed-resource console entry.
  */
 export async function probeBackend(timeoutMs = 2500): Promise<boolean> {
   try {
     const resp = await fetch(`${API_BASE}/healthz`, {
       signal: AbortSignal.timeout(timeoutMs),
     });
-    return resp.ok;
+    if (!resp.ok) return false;
+    const body = (await resp.json().catch(() => null)) as { status?: string } | null;
+    return body?.status === "ok";
   } catch {
     return false;
   }
