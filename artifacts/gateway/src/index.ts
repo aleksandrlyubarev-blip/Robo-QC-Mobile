@@ -1,3 +1,4 @@
+import "./lib/env";
 import app from "./app";
 
 // Default to 3001 for local development; docker-compose and production set
