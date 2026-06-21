@@ -111,23 +111,27 @@ export function InspectionDetailPage() {
 
           {review.error && <div style={{ marginTop: 12 }}><ErrorBanner error={review.error} /></div>}
 
-          {/* Report generation */}
-          <div className="section-label">Report</div>
-          <div className="card">
-            <button
-              className="btn btn-primary btn-block"
-              disabled={generateReport.isPending}
-              onClick={() =>
-                generateReport.mutate(
-                  { inspectionId: id },
-                  { onSuccess: () => navigate("/reports") },
-                )
-              }
-            >
-              {generateReport.isPending ? "Generating…" : "📄 Generate QC report"}
-            </button>
-            {generateReport.error && <div style={{ marginTop: 10 }}><ErrorBanner error={generateReport.error} /></div>}
-          </div>
+          {/* Report generation (Checker only) */}
+          {mode === "checker" && (
+            <>
+              <div className="section-label">Report</div>
+              <div className="card">
+                <button
+                  className="btn btn-primary btn-block"
+                  disabled={generateReport.isPending}
+                  onClick={() =>
+                    generateReport.mutate(
+                      { inspectionId: id },
+                      { onSuccess: () => navigate("/reports") },
+                    )
+                  }
+                >
+                  {generateReport.isPending ? "Generating…" : "📄 Generate QC report"}
+                </button>
+                {generateReport.error && <div style={{ marginTop: 10 }}><ErrorBanner error={generateReport.error} /></div>}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

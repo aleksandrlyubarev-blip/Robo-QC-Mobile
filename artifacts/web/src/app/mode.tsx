@@ -10,6 +10,8 @@ export type AppMode = "checker" | "display";
 interface ModeContextValue {
   mode: AppMode;
   setMode: (mode: AppMode) => void;
+  /** Display mode is strictly read-only: no captures, edits, or QC actions. */
+  readOnly: boolean;
   operatorId: string;
   setOperatorId: (id: string) => void;
 }
@@ -40,6 +42,7 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
     () => ({
       mode,
       setMode: setModeState,
+      readOnly: mode === "display",
       operatorId,
       setOperatorId: setOperatorIdState,
     }),
