@@ -84,6 +84,9 @@ pnpm --filter @workspace/web run build          # production build
 pnpm --filter @workspace/web run verify:demo    # headless demo-flow checks
 ```
 
+> **CI:** No GitHub Actions / CI pipeline is configured for this repository
+> yet. The checks above are run locally; there is no automated CI gate on PRs.
+
 ## Configuration
 
 | Variable          | Where    | Default                 | Purpose                                       |

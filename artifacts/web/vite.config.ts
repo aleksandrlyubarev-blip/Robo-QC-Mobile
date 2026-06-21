@@ -38,15 +38,17 @@ export default defineConfig({
       "/api": {
         target: GATEWAY_TARGET,
         changeOrigin: true,
-        // When the gateway is down, answer with a clean 503 instead of letting
-        // the proxy reset the socket — that keeps the frontend's liveness probe
-        // a resolved fetch (no browser console errors during demo fallback).
+        // When the gateway is down, answer with HTTP 200 carrying an explicit
+        // "unavailable" payload instead of an error status. Browsers log any
+        // 4xx/5xx fetch as a failed resource, so a 200 keeps the console clean
+        // during demo fallback; the probe distinguishes this from a real
+        // gateway by the body (it never reports status: "ok").
         configure: (proxy) => {
           proxy.on("error", (_err, _req, res) => {
             const r = res as ServerResponse;
             if (typeof r.writeHead === "function" && !r.headersSent) {
-              r.writeHead(503, { "Content-Type": "application/json" });
-              r.end(JSON.stringify({ error: "Gateway unavailable (demo mode)" }));
+              r.writeHead(200, { "Content-Type": "application/json" });
+              r.end(JSON.stringify({ status: "unavailable", gateway: false }));
             }
           });
         },

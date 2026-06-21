@@ -181,6 +181,18 @@ button {
   }
 }
 
+/* On the smallest phones (~320px) free enough room that the full
+   "Neuron Vision" wordmark never clips: collapse the data-source pill to its
+   status dot only. Demo state is still conveyed by the banner below the header. */
+@media (max-width: 360px) {
+  .ds-pill-text {
+    display: none;
+  }
+  .ds-pill {
+    padding: 5px 8px;
+  }
+}
+
 .app-main {
   flex: 1;
   padding: 16px;
