@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSpec, useCreateSpec, useUpdateSpec } from "../api/hooks";
+import { useMode } from "../app/mode";
 import { Loader, ErrorBanner } from "../components/states";
 import type { ComponentSpec, ComponentType, BoardDimensions } from "../api/types";
 
@@ -35,6 +36,7 @@ function makeComponent(index: number): ComponentSpec {
 export function SpecEditorPage() {
   const params = useParams();
   const navigate = useNavigate();
+  const { readOnly } = useMode();
   const id = params.id ? Number(params.id) : undefined;
   const isEdit = id != null;
 
@@ -84,8 +86,16 @@ export function SpecEditorPage() {
   return (
     <div>
       <button className="btn" onClick={() => navigate(-1)} style={{ marginBottom: 12 }}>← Back</button>
-      <h1 className="page-title">{isEdit ? "Edit Spec" : "New PCB Spec"}</h1>
+      <h1 className="page-title">
+        {readOnly ? "View Spec" : isEdit ? "Edit Spec" : "New PCB Spec"}
+      </h1>
+      {readOnly && (
+        <div className="banner-info" style={{ marginBottom: 14 }}>
+          🔒 Display mode is read-only. Switch to Checker to edit specs.
+        </div>
+      )}
 
+      <fieldset className="bare-fieldset" disabled={readOnly}>
       <div className="card">
         <div className="field">
           <label>Name</label>
@@ -109,12 +119,14 @@ export function SpecEditorPage() {
 
       <div className="row-between" style={{ margin: "20px 0 10px" }}>
         <div className="section-label" style={{ margin: 0 }}>Components ({components.length})</div>
-        <button
-          className="btn"
-          onClick={() => setComponents((prev) => [...prev, makeComponent(prev.length)])}
-        >
-          + Add component
-        </button>
+        {!readOnly && (
+          <button
+            className="btn"
+            onClick={() => setComponents((prev) => [...prev, makeComponent(prev.length)])}
+          >
+            + Add component
+          </button>
+        )}
       </div>
 
       <div className="list">
@@ -131,16 +143,20 @@ export function SpecEditorPage() {
         )}
       </div>
 
+      </fieldset>
+
       {mutationError && <div style={{ marginTop: 14 }}><ErrorBanner error={mutationError} /></div>}
 
-      <button
-        className="btn btn-primary btn-block btn-lg"
-        style={{ marginTop: 18 }}
-        disabled={pending || !name.trim()}
-        onClick={handleSave}
-      >
-        {pending ? "Saving…" : isEdit ? "Save changes" : "Create spec"}
-      </button>
+      {!readOnly && (
+        <button
+          className="btn btn-primary btn-block btn-lg"
+          style={{ marginTop: 18 }}
+          disabled={pending || !name.trim()}
+          onClick={handleSave}
+        >
+          {pending ? "Saving…" : isEdit ? "Save changes" : "Create spec"}
+        </button>
+      )}
     </div>
   );
 }
