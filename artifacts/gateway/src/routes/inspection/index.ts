@@ -6,8 +6,10 @@ import {
   detections,
   qcResults,
   pcbSpecs,
+  annotations,
+  insertAnnotationSchema,
 } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { callInferenceServer } from "../../lib/inference-client";
 import { runQcRulesEngine } from "../../lib/qc-rules-engine";
 import type { ComponentSpec } from "@workspace/shared-types";
@@ -179,6 +181,11 @@ router.post("/:id/review", async (req, res) => {
   const id = Number(req.params.id);
   const { componentId, decision, reviewedBy } = req.body;
 
+  if (typeof componentId !== "string" || componentId.length === 0) {
+    res.status(400).json({ error: "componentId is required" });
+    return;
+  }
+
   const [updated] = await db
     .update(qcResults)
     .set({
@@ -186,7 +193,7 @@ router.post("/:id/review", async (req, res) => {
       reviewedBy,
       status: decision === "override_pass" ? "pass" : decision === "approved" ? "pass" : "fail",
     })
-    .where(eq(qcResults.inspectionId, id))
+    .where(and(eq(qcResults.inspectionId, id), eq(qcResults.componentId, componentId)))
     .returning();
 
   if (!updated) {
@@ -194,6 +201,37 @@ router.post("/:id/review", async (req, res) => {
     return;
   }
   res.json(updated);
+});
+
+// List training annotations for an inspection
+router.get("/:id/annotations", async (req, res) => {
+  const id = Number(req.params.id);
+  const results = await db
+    .select()
+    .from(annotations)
+    .where(eq(annotations.inspectionId, id))
+    .orderBy(annotations.createdAt);
+  res.json(results);
+});
+
+// Record a training annotation (confirm/correct/add label from review)
+router.post("/:id/annotations", async (req, res) => {
+  const id = Number(req.params.id);
+
+  const [inspection] = await db.select().from(inspections).where(eq(inspections.id, id));
+  if (!inspection) {
+    res.status(404).json({ error: "Inspection not found" });
+    return;
+  }
+
+  const parsed = insertAnnotationSchema.safeParse({ ...req.body, inspectionId: id });
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid annotation data", details: parsed.error.issues });
+    return;
+  }
+
+  const [annotation] = await db.insert(annotations).values(parsed.data).returning();
+  res.status(201).json(annotation);
 });
 
 export default router;

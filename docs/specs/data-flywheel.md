@@ -217,9 +217,9 @@ are the Improve actuator.
 
 | Change | Type | File / area |
 |---|---|---|
-| Per-component review filter | **bugfix** | `routes/inspection/index.ts` `/:id/review` |
+| Per-component review filter | **bugfix — done** | `routes/inspection/index.ts` `/:id/review` |
 | Artifact naming/storage convention | new | storage layer / capture |
-| `annotations` table | new schema | `lib/db/src/schema/` |
+| `annotations` table + routes | **done** | `lib/db/src/schema/annotations.ts`, `GET/POST /:id/annotations` |
 | `anomalyPrompts` on spec | schema add | `lib/shared-types/src/spec.ts`, `pcb-specs` |
 | Anomaly findings in `qc_results.details` | convention | rules engine (when defect model exists) |
 | Dataset manifest + model registry | new | training tooling |
