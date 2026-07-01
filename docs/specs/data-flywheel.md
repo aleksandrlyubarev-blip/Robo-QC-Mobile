@@ -218,7 +218,8 @@ are the Improve actuator.
 | Change | Type | File / area |
 |---|---|---|
 | Per-component review filter | **bugfix — done** | `routes/inspection/index.ts` `/:id/review` |
-| Artifact naming/storage convention | new | storage layer / capture |
+| Artifact naming/storage convention | **helpers done** | `lib/shared-types/src/artifacts.ts` (storage backend still open, §11.1) |
+| Pre-screen contract validation | **done** | `lib/shared-types/src/prescreen.ts`, `/:id/pre-screen` |
 | `annotations` table + routes | **done** | `lib/db/src/schema/annotations.ts`, `GET/POST /:id/annotations` |
 | `anomalyPrompts` on spec | schema add | `lib/shared-types/src/spec.ts`, `pcb-specs` |
 | Anomaly findings in `qc_results.details` | convention | rules engine (when defect model exists) |

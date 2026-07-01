@@ -12,7 +12,7 @@ import {
 import { and, eq } from "drizzle-orm";
 import { callInferenceServer } from "../../lib/inference-client";
 import { runQcRulesEngine } from "../../lib/qc-rules-engine";
-import type { ComponentSpec } from "@workspace/shared-types";
+import { PreScreenResultSchema, type ComponentSpec } from "@workspace/shared-types";
 
 const router: IRouter = Router();
 
@@ -51,11 +51,21 @@ router.post("/", async (req, res) => {
 // Upload pre-screen results from on-device detection
 router.post("/:id/pre-screen", async (req, res) => {
   const id = Number(req.params.id);
+
+  const parsed = PreScreenResultSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid pre-screen result", details: parsed.error.issues });
+    return;
+  }
+
+  // "retake" means the capture is unusable — send the device back to capturing
+  const status = parsed.data.gate === "retake" ? "capturing" : "pre_screening";
+
   const [updated] = await db
     .update(inspections)
     .set({
-      preScreenResult: req.body,
-      status: "pre_screening",
+      preScreenResult: parsed.data,
+      status,
       updatedAt: new Date(),
     })
     .where(eq(inspections.id, id))

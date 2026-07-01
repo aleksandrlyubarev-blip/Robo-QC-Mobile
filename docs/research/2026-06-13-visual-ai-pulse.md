@@ -152,9 +152,12 @@ hardware.** Nothing here is committed scope — it is a sequencing recommendatio
    [`docs/specs/defect-taxonomy.md`](../specs/defect-taxonomy.md)
 3. **Synthetic-defect pipeline spec** (mat. 3) — golden images + few defect refs → variants
    + masks/labels/severity → train/eval split. Vendor-agnostic interface so NVIDIA
-   tooling is swappable.
+   tooling is swappable. → **drafted:**
+   [`docs/specs/synthetic-defect-pipeline.md`](../specs/synthetic-defect-pipeline.md)
 4. **Pre-screen contract** (mat. 2, 8) — define the JSON the device posts to
-   `/:id/pre-screen` (per-region scores, gate decision, crops).
+   `/:id/pre-screen` (per-region scores, gate decision, crops). → **implemented:**
+   [`docs/specs/prescreen-contract.md`](../specs/prescreen-contract.md) +
+   `PreScreenResultSchema` validation in the route.
 
 ### Phase 3 — Edge pre-screen + baselines
 5. **Edge benchmark harness** (mat. 2, 6) — YOLOv8/v10 (+ RF-DETR / RT-DETR) on RoboQC

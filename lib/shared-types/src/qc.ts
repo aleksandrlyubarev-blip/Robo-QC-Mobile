@@ -32,6 +32,10 @@ export const ReviewDecisionSchema = z.enum([
   "override_pass",
 ]);
 
+// Defect severity (docs/specs/defect-taxonomy.md §4) — orthogonal to class,
+// drives the overall verdict rather than the finding type.
+export const SeveritySchema = z.enum(["critical", "major", "minor", "info"]);
+
 export const QcComponentResultSchema = z.object({
   componentId: z.string(),
   status: QcStatusSchema,
@@ -56,5 +60,6 @@ export type QcStatus = z.infer<typeof QcStatusSchema>;
 export type OverallStatus = z.infer<typeof OverallStatusSchema>;
 export type InspectionStatus = z.infer<typeof InspectionStatusSchema>;
 export type ReviewDecision = z.infer<typeof ReviewDecisionSchema>;
+export type Severity = z.infer<typeof SeveritySchema>;
 export type QcComponentResult = z.infer<typeof QcComponentResultSchema>;
 export type QcReportSummary = z.infer<typeof QcReportSummarySchema>;
