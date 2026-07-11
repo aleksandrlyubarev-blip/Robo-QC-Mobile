@@ -108,3 +108,79 @@ unchanged.
   Raise it in `.env` and restart the gateway.
 - **`localhost` works in the iOS simulator but not the Android emulator.** Use
   `10.0.2.2` for Android — `localhost` there is the emulated device itself.
+
+---
+
+## 5. Native shell (Capacitor)
+
+Iteration 1 wraps the **existing** `artifacts/web` React app in a
+[Capacitor](https://capacitorjs.com) native shell. The UI is not rewritten and
+no product features were added — Capacitor just loads the Vite production build
+(`webDir: dist`) inside a native WebView so the app can ship as an Android/iOS
+package. The web app remains the single frontend source.
+
+| Setting   | Value                       |
+| --------- | --------------------------- |
+| App name  | `Neuron Vision`             |
+| App / package id | `com.roboqc.neuronvision` |
+| Web dir   | `dist` (Vite build output)  |
+| Config    | `artifacts/web/capacitor.config.ts` |
+
+### Commands (run inside `artifacts/web`)
+
+```bash
+# Build the web app and copy it into the native projects
+pnpm --filter @workspace/web run mobile:build      # vite build && cap sync
+
+# Copy an existing build into the native projects (no rebuild)
+pnpm --filter @workspace/web run mobile:sync        # cap sync
+
+# Add platforms (Android is already scaffolded and committed)
+pnpm --filter @workspace/web run mobile:add:android
+pnpm --filter @workspace/web run mobile:add:ios     # macOS only
+
+# Open the native IDE to build/run on device or emulator
+pnpm --filter @workspace/web run mobile:open:android # needs Android Studio + SDK
+pnpm --filter @workspace/web run mobile:open:ios     # needs macOS + Xcode
+```
+
+Always run `mobile:build` (or `build` + `mobile:sync`) after changing the web
+app so the native shell picks up the new assets.
+
+### Android requirements
+
+- **Android Studio** (or the Android command-line tools) with an **Android SDK**
+  and a configured `ANDROID_HOME` / `ANDROID_SDK_ROOT`.
+- **JDK 21** (already used by the Gradle build).
+- The `android/` project is committed. To build/run:
+  `pnpm --filter @workspace/web run mobile:open:android`, then Run in Android
+  Studio — or from the CLI: `cd artifacts/web/android && ./gradlew assembleDebug`.
+
+### iOS requirements
+
+- **macOS** with **Xcode** and **CocoaPods** (`sudo gem install cocoapods`).
+- Generate the project once on a Mac:
+  `pnpm --filter @workspace/web run mobile:add:ios`, then
+  `pnpm --filter @workspace/web run mobile:open:ios` to build in Xcode.
+- The iOS project is **not** committed because it can only be scaffolded on
+  macOS (CocoaPods / Xcode toolchain). `@capacitor/ios` is already a dependency,
+  so `cap add ios` works out of the box on a Mac.
+
+### Demo mode in the shell
+
+Inside the WebView the app's origin is `https://localhost` (Android) /
+`capacitor://localhost` (iOS) with no Vite proxy, so the default `/api` probe
+fails fast and the app falls back to **Demo mode** — it works offline with no
+backend, as required. To use a live gateway, set the device-level **Gateway
+URL** (header → data-source pill → Gateway URL) to the address from §1.
+
+### Known limitation — live gateway over HTTP on Android
+
+The live gateway is plain `http://` on the LAN. Android 9+ blocks cleartext
+HTTP by default, and the generated Capacitor project does **not** add a
+cleartext exception. Demo mode is unaffected (it makes no network calls). To
+test the *live* gateway from an Android build you must allow cleartext to the
+gateway host — e.g. add a `res/xml/network_security_config.xml` permitting
+`10.0.2.2` / your LAN IP and reference it from `AndroidManifest.xml`, or serve
+the gateway over HTTPS. This native-config change is deferred to a later
+iteration (it is not needed for Demo mode and was out of scope for the shell).

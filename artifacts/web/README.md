@@ -124,6 +124,14 @@ scripts/
   verify-demo.ts   headless end-to-end check of the demo workflow
 ```
 
+## Native shell (Capacitor)
+
+This same build is wrapped in a Capacitor native shell (Android scaffolded in
+`android/`, iOS generated on macOS). Config is `capacitor.config.ts`
+(`com.roboqc.neuronvision`, `webDir: dist`). Build + sync with
+`pnpm --filter @workspace/web run mobile:build`. See
+[`MOBILE.md`](../../MOBILE.md) §5 for Android/iOS requirements and commands.
+
 ## Notes
 
 - Image capture uses `getUserMedia` (rear camera) with a file-upload fallback.
