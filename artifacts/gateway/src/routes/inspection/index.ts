@@ -7,7 +7,7 @@ import {
   qcResults,
   pcbSpecs,
 } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { callInferenceServer } from "../../lib/inference-client";
 import { runQcRulesEngine } from "../../lib/qc-rules-engine";
 import type { ComponentSpec } from "@workspace/shared-types";
@@ -179,18 +179,40 @@ router.post("/:id/review", async (req, res) => {
   const id = Number(req.params.id);
   const { componentId, decision, reviewedBy } = req.body;
 
+  if (typeof componentId !== "string" || componentId.length === 0) {
+    res.status(400).json({ error: "componentId is required" });
+    return;
+  }
+
+  // Map the operator's decision to the resulting QC status.
+  const statusByDecision: Record<string, string> = {
+    approved: "pass",
+    override_pass: "pass",
+    rejected: "fail",
+  };
+  const nextStatus = statusByDecision[decision];
+  if (!nextStatus) {
+    res.status(400).json({
+      error: "Invalid review decision",
+      allowed: Object.keys(statusByDecision),
+    });
+    return;
+  }
+
+  // Scope the update to the specific component being reviewed — otherwise a
+  // single review would overwrite the status of every component on the board.
   const [updated] = await db
     .update(qcResults)
     .set({
       reviewDecision: decision,
       reviewedBy,
-      status: decision === "override_pass" ? "pass" : decision === "approved" ? "pass" : "fail",
+      status: nextStatus,
     })
-    .where(eq(qcResults.inspectionId, id))
+    .where(and(eq(qcResults.inspectionId, id), eq(qcResults.componentId, componentId)))
     .returning();
 
   if (!updated) {
-    res.status(404).json({ error: "QC result not found" });
+    res.status(404).json({ error: "QC result not found for this component" });
     return;
   }
   res.json(updated);

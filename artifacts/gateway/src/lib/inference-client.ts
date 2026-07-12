@@ -1,4 +1,4 @@
-import type { DetectionResponse } from "@workspace/shared-types";
+import { DetectionResponseSchema, type DetectionResponse } from "@workspace/shared-types";
 
 interface InferenceRequest {
   imageUrl: string;
@@ -46,5 +46,8 @@ export async function callInferenceServer(request: InferenceRequest): Promise<De
     throw new Error(`Inference server error (${resp.status}): ${body}`);
   }
 
-  return (await resp.json()) as DetectionResponse;
+  // Validate the response against the shared contract instead of a blind cast,
+  // so any drift from the inference server surfaces here rather than silently
+  // corrupting downstream QC.
+  return DetectionResponseSchema.parse(await resp.json());
 }
